@@ -13,7 +13,6 @@ import android.widget.ListView;
 
 public class ListFragment extends Fragment {
 
-    Context context;
     private static final String ARG_BOOKLIST = "bookList";
 
     private BookList bookList;
@@ -22,12 +21,11 @@ public class ListFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static ListFragment newInstance(BookList bookList, Context context) {
+    public static ListFragment newInstance(BookList bookList) {
         ListFragment instance = new ListFragment();
         Bundle args = new Bundle();
         args.putParcelableArrayList(ARG_BOOKLIST, bookList);
         instance.setArguments(args);
-        instance.context = context;
         return instance;
     }
 
@@ -48,7 +46,7 @@ public class ListFragment extends Fragment {
         Log.d("FRAG", "Creating Fragment View!");
 
         ListView listView = layout.findViewById(R.id.bookListView);
-        BookAdapter bookAdapter = new BookAdapter(context, bookList);
+        BookAdapter bookAdapter = new BookAdapter(getActivity(), bookList);
         listView.setAdapter(bookAdapter);
 
         return layout;
