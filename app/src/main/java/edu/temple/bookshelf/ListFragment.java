@@ -60,7 +60,7 @@ public class ListFragment extends Fragment {
         // Inflate the layout for this fragment
         View layout = inflater.inflate(R.layout.fragment_list, container, false);
 
-        Log.d("FRAG", "Creating Fragment View!");
+        Log.d("FRAG", "Creating List Fragment View!");
 
         ListView listView = layout.findViewById(R.id.bookListView);
         BookAdapter bookAdapter = new BookAdapter((Context) parentActivity, bookList);

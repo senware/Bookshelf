@@ -8,6 +8,7 @@ import android.util.Log;
 public class MainActivity extends AppCompatActivity implements ListFragment.ListFragmentInterface {
 
     BookList bookList;
+    DisplayFragment displayFragment;
     boolean secondContainer;
 
     @Override
@@ -25,20 +26,26 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
                 .beginTransaction()
                 .replace(R.id.container_1, ListFragment.newInstance(bookList))
                 .commit();
+
+        if (secondContainer) {
+            displayFragment = new DisplayFragment();
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.container_2, displayFragment)
+                    .commit();
+        }
     }
 
     @Override
     public void itemClicked(int position) {
-        int target;
-        if(secondContainer){
-            target = R.id.container_2;
+        if(secondContainer) {
+            displayFragment.changeBook(bookList.get(position)) ;
         } else {
-            target = R.id.container_1;
-        }
         getSupportFragmentManager()
             .beginTransaction()
-            .replace(target, DisplayFragment.newInstance(bookList.get(position)))
+            .replace(R.id.container_1, DisplayFragment.newInstance(bookList.get(position)))
             .addToBackStack(null)
             .commit();
+        }
     }
 }

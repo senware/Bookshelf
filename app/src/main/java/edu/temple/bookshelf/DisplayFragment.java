@@ -48,6 +48,8 @@ public class DisplayFragment extends Fragment {
         // Inflate the layout for this fragment
         View layout = inflater.inflate(R.layout.fragment_display, container, false);
 
+        Log.d("FRAG", "Creating Display Fragment View!");
+
         title = layout.findViewById(R.id.book_title);
         author = layout.findViewById((R.id.book_author));
         if (book != null && title != null && author != null) {
