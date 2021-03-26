@@ -1,6 +1,7 @@
 package edu.temple.bookshelf;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -10,42 +11,50 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
     BookList bookList;
     DisplayFragment displayFragment;
     boolean secondContainer;
+    boolean itemChosen;
+    FragmentManager manager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        manager = getSupportFragmentManager();
         secondContainer = findViewById(R.id.container_2) != null;
 
-        Log.d("ACTIVITY", "Launched main activity!");
+        Log.d("ACTIVITY", "Launched main activity! Value of itemChosen: ");
 
         bookList = new BookList(this);
         bookList.readFromFile("bookfile");
 
-        getSupportFragmentManager()
+        manager
                 .beginTransaction()
                 .replace(R.id.container_1, ListFragment.newInstance(bookList))
                 .commit();
 
-        if (secondContainer) {
-            displayFragment = new DisplayFragment();
-            getSupportFragmentManager()
+
+        displayFragment = new DisplayFragment();
+        if(secondContainer) {
+            manager
                     .beginTransaction()
-                    .replace(R.id.container_2, displayFragment)
+                    .add(R.id.container_2, displayFragment)
+                    .addToBackStack(null)
                     .commit();
         }
+
     }
 
     @Override
     public void itemClicked(int position) {
         if(secondContainer) {
-            displayFragment.changeBook(bookList.get(position)) ;
+            displayFragment.changeBook(bookList.get(position));
         } else {
-        getSupportFragmentManager()
-            .beginTransaction()
-            .replace(R.id.container_1, DisplayFragment.newInstance(bookList.get(position)))
-            .addToBackStack(null)
-            .commit();
+            displayFragment = DisplayFragment.newInstance(bookList.get(position));
+            manager
+                .beginTransaction()
+                .replace(R.id.container_1, displayFragment)
+                .addToBackStack(null)
+                .commit();
         }
     }
 }

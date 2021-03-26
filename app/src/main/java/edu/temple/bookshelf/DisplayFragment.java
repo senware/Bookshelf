@@ -36,6 +36,7 @@ public class DisplayFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("FRAG", "Creating Display Fragment!");
         if (getArguments() != null) {
             book = getArguments().getParcelable(ARG_BOOK);
             Log.d("PARCEL", "Unpackaged book with Title: " + book.getTitle());
@@ -47,8 +48,6 @@ public class DisplayFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View layout = inflater.inflate(R.layout.fragment_display, container, false);
-
-        Log.d("FRAG", "Creating Display Fragment View!");
 
         title = layout.findViewById(R.id.book_title);
         author = layout.findViewById((R.id.book_author));
