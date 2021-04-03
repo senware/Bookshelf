@@ -12,6 +12,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
 public class DisplayFragment extends Fragment {
 
     private static final String ARG_BOOK = "book";
@@ -66,6 +68,6 @@ public class DisplayFragment extends Fragment {
         author.setText(book.getAuthor());
         String coverURL = book.getCoverURL();
         if (coverURL != null)
-            cover.setImageURI(Uri.parse(coverURL));
+            Picasso.with(getContext()).load(Uri.parse(coverURL)).into(cover);
     }
 }
