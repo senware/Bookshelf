@@ -25,7 +25,6 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
 
     private final String ARG_SELECTED_BOOK = "selectedBook";
     private final String ARG_BOOKLIST = "booklist";
-    private final String BOOKLIST_JSON = "booklistJson";
 
     private final String ID = "id", TITLE = "title", AUTHOR = "author", COVERURL = "cover_url";
 
@@ -53,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
             bookList = new BookList(this);
             JSONArray bookListJson = null;
             try {
-                bookListJson = new JSONArray(getIntent().getExtras().getString(BOOKLIST_JSON));
+                bookListJson = new JSONArray(getIntent().getExtras().getString("booklistJson"));
             } catch (JSONException e) {
                 e.printStackTrace();
             }

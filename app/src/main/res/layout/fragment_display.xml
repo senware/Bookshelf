@@ -38,7 +38,7 @@
         <ImageView
             android:id="@+id/book_cover"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:contentDescription="@string/cover_desc"
             tools:src="" />
     </LinearLayout>
