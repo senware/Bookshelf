@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
 
     private final String ARG_SELECTED_BOOK = "selectedBook";
     private final String ARG_BOOKLIST = "booklist";
+    private final String BOOKLIST_JSON = "booklistJson";
 
     private final String ID = "id", TITLE = "title", AUTHOR = "author", COVERURL = "cover_url";
 
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
             bookList = new BookList(this);
             JSONArray bookListJson = null;
             try {
-                bookListJson = new JSONArray(getIntent().getExtras().getString("BOOKLIST_JSON"));
+                bookListJson = new JSONArray(getIntent().getExtras().getString(BOOKLIST_JSON));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -103,22 +104,8 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
                     .commit();
         }
 
-//        manager
-//                .beginTransaction()
-//                .replace(R.id.container_1, ListFragment.newInstance(bookList))
-//                .commit();
-//
-//
-//        displayFragment = new DisplayFragment();
-//        if(secondContainer) {
-//            manager
-//                    .beginTransaction()
-//                    .add(R.id.container_2, displayFragment)
-//                    .addToBackStack(null)
-//                    .commit();
-//        }
-
     }
+
 
     @Override
     public void itemClicked(int position) {
