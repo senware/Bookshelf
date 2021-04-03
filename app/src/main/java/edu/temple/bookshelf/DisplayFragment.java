@@ -1,6 +1,6 @@
 package edu.temple.bookshelf;
 
-import android.content.Context;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 public class DisplayFragment extends Fragment {
@@ -19,6 +20,7 @@ public class DisplayFragment extends Fragment {
 
     private TextView title;
     private TextView author;
+    private ImageView cover;
 
     public DisplayFragment() {
         // Required empty public constructor
@@ -51,6 +53,7 @@ public class DisplayFragment extends Fragment {
 
         title = layout.findViewById(R.id.book_title);
         author = layout.findViewById((R.id.book_author));
+        cover = layout.findViewById(R.id.book_cover);
         if (book != null && title != null && author != null) {
             changeBook(book);
         }
@@ -61,5 +64,8 @@ public class DisplayFragment extends Fragment {
     public void changeBook(Book book) {
         title.setText(book.getTitle());
         author.setText(book.getAuthor());
+        String coverURL = book.getCoverURL();
+        if (coverURL != null)
+            cover.setImageURI(Uri.parse(coverURL));
     }
 }

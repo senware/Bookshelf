@@ -7,13 +7,7 @@
     android:layout_height="match_parent"
     android:baselineAligned="false">
 
-    <FrameLayout
-        android:id="@+id/container_1"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1">
-
-    </FrameLayout>
+    <include layout="@layout/container_1_parent_layout"/>
 
     <FrameLayout
         android:id="@+id/container_2"

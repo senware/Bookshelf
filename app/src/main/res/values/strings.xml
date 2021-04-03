@@ -2,4 +2,8 @@
     <string name="app_name">Bookshelf</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="cover_desc">Book Cover</string>
+    <string name="search_title">Search</string>
+    <string name="search_prompt">Enter title/author</string>
+    <string name="search_button">Go</string>
 </resources>
