@@ -22,6 +22,7 @@ public class SearchActivity extends AppCompatActivity {
 
     EditText searchEditText;
     Button searchButton;
+    public static final String BOOKLIST_JSON = "booklistJson";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +46,7 @@ public class SearchActivity extends AppCompatActivity {
             public boolean handleMessage(@NonNull Message msg) {
                 Intent intent = new Intent(context, MainActivity.class);
                 Bundle extras = new Bundle();
-                extras.putString("booklistJson", (String) msg.obj);
+                extras.putString(BOOKLIST_JSON, (String) msg.obj);
                 intent.putExtras(extras);
                 startActivity(intent);
                 return true;

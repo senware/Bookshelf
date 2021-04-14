@@ -7,6 +7,7 @@ import androidx.fragment.app.FragmentManager;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.service.controls.Control;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -26,7 +27,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
     private final String ARG_SELECTED_BOOK = "selectedBook";
     private final String ARG_BOOKLIST = "booklist";
 
-    private final String ID = "id", TITLE = "title", AUTHOR = "author", COVERURL = "cover_url";
+    private final String ID = "id", TITLE = "title", AUTHOR = "author", COVERURL = "cover_url", DURATION="duration";
 
     Button searchActivityButton;
 
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
             bookList = new BookList(this);
             JSONArray bookListJson = null;
             try {
-                bookListJson = new JSONArray(getIntent().getExtras().getString("booklistJson"));
+                bookListJson = new JSONArray(getIntent().getExtras().getString(SearchActivity.BOOKLIST_JSON));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -64,7 +65,8 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
                     String title = bookJson.getString(TITLE);
                     String author = bookJson.getString(AUTHOR);
                     String coverURL = bookJson.getString(COVERURL);
-                    bookList.add(new Book(id, title, author, coverURL));
+                    int duration = bookJson.getInt(DURATION);
+                    bookList.add(new Book(id, title, author, coverURL, duration));
                 }
             } catch(Exception e) {
                 e.printStackTrace();
@@ -75,6 +77,16 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
 
         manager = getSupportFragmentManager();
         secondContainer = findViewById(R.id.container_2) != null;
+
+        Fragment cFrag;
+        cFrag = manager.findFragmentById(R.id.control_container);
+
+        if(!(cFrag instanceof ControlFragment)) {
+            manager
+                    .beginTransaction()
+                    .add(R.id.control_container, new ControlFragment())
+                    .commit();
+        }
 
         Fragment f1;
         f1 = manager.findFragmentById((R.id.container_1));
