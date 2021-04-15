@@ -16,7 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class MainActivity extends AppCompatActivity implements ListFragment.ListFragmentInterface {
+public class MainActivity extends AppCompatActivity implements ListFragment.ListFragmentInterface, ControlFragment.ControlFragmentInterface {
 
     BookList bookList;
     DisplayFragment displayFragment;
@@ -25,7 +25,6 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
     FragmentManager manager;
 
     private final String ARG_SELECTED_BOOK = "selectedBook";
-    private final String ARG_BOOKLIST = "booklist";
 
     private final String ID = "id", TITLE = "title", AUTHOR = "author", COVERURL = "cover_url", DURATION="duration";
 
@@ -48,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
 
         if (savedInstanceState != null) {
             selectedBook = savedInstanceState.getParcelable(ARG_SELECTED_BOOK);
-            bookList = (BookList) savedInstanceState.getParcelableArrayList(ARG_BOOKLIST);
+            bookList = (BookList) savedInstanceState.getParcelableArrayList(ListFragment.ARG_BOOKLIST);
         } else if (getIntent().getExtras() != null){
             bookList = new BookList(this);
             JSONArray bookListJson = null;
@@ -135,10 +134,30 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
     }
 
     @Override
+    public void playAudio() {
+
+    }
+
+    @Override
+    public void pauseAudio() {
+
+    }
+
+    @Override
+    public void stopAudio() {
+
+    }
+
+    @Override
+    public void seekAudio() {
+
+    }
+
+    @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable(ARG_SELECTED_BOOK, selectedBook);
-        outState.putParcelableArrayList(ARG_BOOKLIST, bookList);
+        outState.putParcelableArrayList(ListFragment.ARG_BOOKLIST, bookList);
     }
 
     @Override

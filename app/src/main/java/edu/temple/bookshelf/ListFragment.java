@@ -18,7 +18,7 @@ public class ListFragment extends Fragment {
 
     private ListFragmentInterface parentActivity;
 
-    private static final String ARG_BOOKLIST = "bookList";
+    public static final String ARG_BOOKLIST = "bookList";
 
     private BookList bookList;
 
@@ -76,6 +76,6 @@ public class ListFragment extends Fragment {
     }
 
     interface ListFragmentInterface {
-        public void itemClicked(int position);
+        void itemClicked(int position);
     }
 }
