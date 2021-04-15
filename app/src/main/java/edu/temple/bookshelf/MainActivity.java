@@ -5,18 +5,29 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.provider.MediaStore;
 import android.service.controls.Control;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.MediaController;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import edu.temple.audiobookplayer.AudiobookService;
+
 public class MainActivity extends AppCompatActivity implements ListFragment.ListFragmentInterface, ControlFragment.ControlFragmentInterface {
+
+    AudiobookService.MediaControlBinder audiobookService;
+    boolean mBound = false;
 
     BookList bookList;
     DisplayFragment displayFragment;
@@ -34,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
 
         searchActivityButton = findViewById(R.id.launch_search_button);
 
@@ -116,6 +129,30 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
 
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = new Intent(this, AudiobookService.class);
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            audiobookService =  (AudiobookService.MediaControlBinder) service;
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mBound = false;
+        }
+    };
 
     @Override
     public void itemClicked(int position) {
@@ -135,7 +172,9 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
 
     @Override
     public void playAudio() {
-
+        if(mBound && selectedBook != null) {
+            audiobookService.play(selectedBook.getId());
+        }
     }
 
     @Override
