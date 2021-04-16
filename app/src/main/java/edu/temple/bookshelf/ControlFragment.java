@@ -7,6 +7,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,13 +19,26 @@ public class ControlFragment extends Fragment {
 
     ControlFragmentInterface parentActivity;
 
+//    private static final String ARG_BOOK= "book";
+//    private Book book;
+
+    public static final String ARG_DURATION = "duration";
+    public static final String ARG_CURRENT = "current";
+
+    private SeekBar seekBar;
+
+    int duration, current;
+
     public ControlFragment() {
         // Required empty public constructor
     }
 
-    public static ControlFragment newInstance(String param1, String param2) {
+    public static ControlFragment newInstance() {
         ControlFragment fragment = new ControlFragment();
         Bundle args = new Bundle();
+//        args.putParcelable(ARG_BOOK, book);
+//        args.putInt(ARG_DURATION, duration);
+//        args.putInt(ARG_CURRENT, current);
         fragment.setArguments(args);
         return fragment;
     }
@@ -32,6 +46,10 @@ public class ControlFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+//            book = (Book) getArguments().getParcelable(ARG_BOOK);
+        }
+        Log.d("FRAG", "Control Fragment created.");
     }
 
     @Override
@@ -55,7 +73,30 @@ public class ControlFragment extends Fragment {
         ImageButton playButton = layout.findViewById(R.id.play_button);
         ImageButton pauseButton = layout.findViewById(R.id.pause_button);
         ImageButton stopButton = layout.findViewById(R.id.stop_button);
-        SeekBar seekBar = layout.findViewById(R.id.seek_bar);
+
+        seekBar = layout.findViewById(R.id.seek_bar);
+
+//        new Thread(new Runnable () {
+//            @Override
+//            public void run() {
+//                while(duration == 0) {
+//                    duration = getArguments().getInt(ARG_DURATION);
+//                    seekBar.setMax(duration);
+//                }
+//                Log.d("SEEK", "Duration is " + seekBar.getMax());
+//
+//                while (current != duration){
+//                    current = getArguments().getInt(ARG_CURRENT);
+//                    seekBar.setProgress(current, true);
+//                    Log.d("SEEK", "Position: " + seekBar.getProgress());
+//                    try {
+//                        Thread.sleep(1000);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        }).start();
 
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -91,17 +132,26 @@ public class ControlFragment extends Fragment {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                parentActivity.seekAudio();
+                parentActivity.seekAudio(seekBar.getProgress());
             }
         });
 
         return layout;
     }
 
+    public void setDuration(int duration) {
+        seekBar.setMax(duration);
+        Log.d("SEEK", "Duration is " + seekBar.getMax());
+    }
+    public void setProgress(int progress) {
+        seekBar.setProgress(progress);
+        Log.d("SEEK", "Position: " + seekBar.getProgress());
+    }
+
     interface ControlFragmentInterface {
         void playAudio();
         void pauseAudio();
         void stopAudio();
-        void seekAudio();
+        void seekAudio(int progress);
     }
 }

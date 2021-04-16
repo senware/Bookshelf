@@ -1,6 +1,7 @@
 package edu.temple.bookshelf;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -10,13 +11,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
-import android.provider.MediaStore;
-import android.service.controls.Control;
-import android.util.Log;
+import android.os.Message;
 import android.view.View;
 import android.widget.Button;
-import android.widget.MediaController;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,12 +29,18 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
     boolean mBound = false;
 
     BookList bookList;
-    DisplayFragment displayFragment;
     boolean secondContainer;
     Book selectedBook;
+    Book playingBook;
+    int currentPosition;
+    boolean paused, playing;
+
     FragmentManager manager;
+    DisplayFragment displayFragment;
+    ControlFragment cFrag;
 
     private final String ARG_SELECTED_BOOK = "selectedBook";
+    private final String ARG_CURRENT_POSITION = "currentPosition";
 
     private final String ID = "id", TITLE = "title", AUTHOR = "author", COVERURL = "cover_url", DURATION="duration";
 
@@ -46,7 +51,8 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        manager = getSupportFragmentManager();
+        secondContainer = findViewById(R.id.container_2) != null;
 
         searchActivityButton = findViewById(R.id.launch_search_button);
 
@@ -54,51 +60,26 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(v.getContext(), SearchActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent, 1);
             }
         });
 
         if (savedInstanceState != null) {
             selectedBook = savedInstanceState.getParcelable(ARG_SELECTED_BOOK);
             bookList = (BookList) savedInstanceState.getParcelableArrayList(ListFragment.ARG_BOOKLIST);
-        } else if (getIntent().getExtras() != null){
-            bookList = new BookList(this);
-            JSONArray bookListJson = null;
-            try {
-                bookListJson = new JSONArray(getIntent().getExtras().getString(SearchActivity.BOOKLIST_JSON));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            JSONObject bookJson;
-            try {
-                for(int i = 0; i < bookListJson.length(); i++) {
-                    bookJson = bookListJson.getJSONObject(i);
-                    int id = bookJson.getInt(ID);
-                    String title = bookJson.getString(TITLE);
-                    String author = bookJson.getString(AUTHOR);
-                    String coverURL = bookJson.getString(COVERURL);
-                    int duration = bookJson.getInt(DURATION);
-                    bookList.add(new Book(id, title, author, coverURL, duration));
-                }
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
+            currentPosition = savedInstanceState.getInt(ARG_CURRENT_POSITION);
         } else {
             bookList = new BookList(this);
         }
 
-        manager = getSupportFragmentManager();
-        secondContainer = findViewById(R.id.container_2) != null;
-
-        Fragment cFrag;
-        cFrag = manager.findFragmentById(R.id.control_container);
-
-        if(!(cFrag instanceof ControlFragment)) {
+        Fragment cFragCheck = manager.findFragmentById(R.id.control_container);
+        if(!(cFragCheck instanceof ControlFragment)) {
             manager
                     .beginTransaction()
-                    .add(R.id.control_container, new ControlFragment())
+                    .add(R.id.control_container, ControlFragment.newInstance(), "CONTROL")
                     .commit();
         }
+
 
         Fragment f1;
         f1 = manager.findFragmentById((R.id.container_1));
@@ -130,22 +111,70 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if (resultCode == RESULT_OK) {
+                bookList = new BookList(this);
+                JSONArray bookListJson = null;
+                try {
+                    bookListJson = new JSONArray(data.getExtras().getString(SearchActivity.BOOKLIST_JSON));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                JSONObject bookJson;
+                try {
+                    for(int i = 0; i < bookListJson.length(); i++) {
+                        bookJson = bookListJson.getJSONObject(i);
+                        int id = bookJson.getInt(ID);
+                        String title = bookJson.getString(TITLE);
+                        String author = bookJson.getString(AUTHOR);
+                        String coverURL = bookJson.getString(COVERURL);
+                        int duration = bookJson.getInt(DURATION);
+                        bookList.add(new Book(id, title, author, coverURL, duration));
+                    }
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
+                manager
+                        .beginTransaction()
+                        .replace(R.id.container_1, ListFragment.newInstance(bookList))
+                        .commit();
+            }
+        }
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
         Intent intent = new Intent(this, AudiobookService.class);
         bindService(intent, connection, Context.BIND_AUTO_CREATE);
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
+//    @Override
+//    protected void onStop() {
+//        super.onStop();
+//    }
 
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             audiobookService =  (AudiobookService.MediaControlBinder) service;
             mBound = true;
+
+            audiobookService.setProgressHandler(new Handler(new Handler.Callback() {
+                @Override
+                public boolean handleMessage(@NonNull Message msg) {
+                    if (!paused && playing) {
+                        AudiobookService.BookProgress bookProgress = (AudiobookService.BookProgress) msg.obj;
+                        currentPosition = bookProgress.getProgress();
+                        cFrag = (ControlFragment) manager.findFragmentByTag("CONTROL");
+                        cFrag.setProgress(currentPosition);
+                        return true;
+                    }
+                    return false;
+                }
+            }));
         }
 
         @Override
@@ -157,6 +186,9 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
     @Override
     public void itemClicked(int position) {
         selectedBook = bookList.get(position);
+
+        cFrag = (ControlFragment) manager.findFragmentByTag("CONTROL");
+        cFrag.setDuration(selectedBook.getDuration());
 
         if(secondContainer) {
             displayFragment.changeBook(bookList.get(position));
@@ -173,23 +205,46 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
     @Override
     public void playAudio() {
         if(mBound && selectedBook != null) {
-            audiobookService.play(selectedBook.getId());
+            if (selectedBook != playingBook) {
+               currentPosition = 0;
+               audiobookService.play(selectedBook.getId(), currentPosition);
+            }
+            if (paused) {
+                audiobookService.pause();
+            } else if (!playing) {
+                audiobookService.play(selectedBook.getId(), currentPosition);
+                playing = true;
+            }
+            paused = false;
         }
     }
 
     @Override
     public void pauseAudio() {
-
+        if (mBound && selectedBook != null && playing) {
+            paused = !paused;
+            audiobookService.pause();
+        }
     }
 
     @Override
     public void stopAudio() {
-
+        if (playing) {
+            audiobookService.stop();
+            playing = false;
+            if (paused) {
+                paused = !paused;
+            }
+            currentPosition = 0;
+//            cFrag = manager.findFragmentByTag("CONTROL");
+            cFrag.setProgress(0);
+        }
     }
 
     @Override
-    public void seekAudio() {
-
+    public void seekAudio(int position) {
+        currentPosition = position;
+        audiobookService.seekTo(position);
     }
 
     @Override
@@ -197,6 +252,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
         super.onSaveInstanceState(outState);
         outState.putParcelable(ARG_SELECTED_BOOK, selectedBook);
         outState.putParcelableArrayList(ListFragment.ARG_BOOKLIST, bookList);
+        outState.putInt(ARG_CURRENT_POSITION, currentPosition);
     }
 
     @Override

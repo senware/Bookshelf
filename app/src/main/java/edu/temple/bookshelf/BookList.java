@@ -9,12 +9,27 @@ import java.io.DataInputStream;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class BookList extends ArrayList<Parcelable> {
+public class BookList extends ArrayList<Parcelable> implements Parcelable {
     private Context context;
 
     public BookList(Context context) {
         this.context = context;
     }
+
+    protected BookList(Parcel in) {
+    }
+
+    public static final Creator<BookList> CREATOR = new Creator<BookList>() {
+        @Override
+        public BookList createFromParcel(Parcel in) {
+            return new BookList(in);
+        }
+
+        @Override
+        public BookList[] newArray(int size) {
+            return new BookList[size];
+        }
+    };
 
     public Book get(int index) {
         return (Book) super.get(index);
@@ -37,5 +52,14 @@ public class BookList extends ArrayList<Parcelable> {
         } catch (Exception e) {
             Log.d("FILE", "File not found.");
         }
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
     }
 }

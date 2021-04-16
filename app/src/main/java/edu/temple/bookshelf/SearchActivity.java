@@ -44,11 +44,12 @@ public class SearchActivity extends AppCompatActivity {
         Handler handler = new Handler(new Handler.Callback() {
             @Override
             public boolean handleMessage(@NonNull Message msg) {
-                Intent intent = new Intent(context, MainActivity.class);
+                Intent resultIntent = new Intent(context, MainActivity.class);
                 Bundle extras = new Bundle();
                 extras.putString(BOOKLIST_JSON, (String) msg.obj);
-                intent.putExtras(extras);
-                startActivity(intent);
+                resultIntent.putExtras(extras);
+                setResult(RESULT_OK, resultIntent);
+                finish();
                 return true;
             }
         }); // Handler
