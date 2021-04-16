@@ -24,6 +24,7 @@ public class ControlFragment extends Fragment {
     public static final String ARG_CURRENT = "current";
 
     private static final String ARG_NOW_PLAYING = "now playing";
+    private static final String ARG_SEEK_MAX= "seek duration";
 
     private SeekBar seekBar;
     private TextView nowPlaying;
@@ -64,8 +65,11 @@ public class ControlFragment extends Fragment {
         View layout = inflater.inflate(R.layout.fragment_control, container, false);
 
         nowPlaying = layout.findViewById(R.id.now_playing);
+        seekBar = layout.findViewById(R.id.seek_bar);
+
         if(savedInstanceState != null){
             nowPlaying.setText(savedInstanceState.getString(ARG_NOW_PLAYING));
+            setDuration(savedInstanceState.getInt(ARG_SEEK_MAX));
         } else {
             nowPlaying.setText(getString(R.string.now_playing));
         }
@@ -73,8 +77,6 @@ public class ControlFragment extends Fragment {
         ImageButton playButton = layout.findViewById(R.id.play_button);
         ImageButton pauseButton = layout.findViewById(R.id.pause_button);
         ImageButton stopButton = layout.findViewById(R.id.stop_button);
-
-        seekBar = layout.findViewById(R.id.seek_bar);
 
         playButton.setOnClickListener(v -> parentActivity.playAudio());
         pauseButton.setOnClickListener(v -> parentActivity.pauseAudio());
@@ -125,5 +127,6 @@ public class ControlFragment extends Fragment {
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(ARG_NOW_PLAYING, nowPlaying.getText().toString());
+        outState.putInt(ARG_SEEK_MAX, seekBar.getMax());
     }
 }
