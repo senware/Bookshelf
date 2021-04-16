@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
     private final String ARG_PAUSED = "paused";
     private final String ARG_PLAYING = "playing";
 
-    private final String ID = "id", TITLE = "title", AUTHOR = "author", COVERURL = "cover_url", DURATION="duration";
+    private final String ID = "id", TITLE = "title", AUTHOR = "author", COVERURL = "cover_url", DURATION = "duration";
 
     Button searchActivityButton;
 
@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
         }
 
         Fragment cFragCheck = manager.findFragmentById(R.id.control_container);
-        if(!(cFragCheck instanceof ControlFragment)) {
+        if (!(cFragCheck instanceof ControlFragment)) {
             manager
                     .beginTransaction()
                     .add(R.id.control_container, ControlFragment.newInstance(), "CONTROL")
@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
                 }
                 JSONObject bookJson;
                 try {
-                    for(int i = 0; i < bookListJson.length(); i++) {
+                    for (int i = 0; i < bookListJson.length(); i++) {
                         bookJson = bookListJson.getJSONObject(i);
                         int id = bookJson.getInt(ID);
                         String title = bookJson.getString(TITLE);
@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
                         int duration = bookJson.getInt(DURATION);
                         bookList.add(new Book(id, title, author, coverURL, duration));
                     }
-                } catch(Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 manager
@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            audiobookService =  (AudiobookService.MediaControlBinder) service;
+            audiobookService = (AudiobookService.MediaControlBinder) service;
             mBound = true;
 
             audiobookService.setProgressHandler(new Handler(new Handler.Callback() {
@@ -199,41 +199,42 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
     @Override
     public void itemClicked(int position) {
         selectedBook = bookList.get(position);
-
+        stopAudio();
         cFrag = (ControlFragment) manager.findFragmentByTag("CONTROL");
-        if(cFrag != null) {
+        if (cFrag != null) {
             cFrag.setDuration(selectedBook.getDuration());
         }
 
-        if(secondContainer) {
+        if (secondContainer) {
             displayFragment.changeBook(bookList.get(position));
         } else {
             displayFragment = DisplayFragment.newInstance(selectedBook);
             manager
-                .beginTransaction()
-                .replace(R.id.container_1, displayFragment, "DISPLAY")
-                .addToBackStack(null)
-                .commit();
+                    .beginTransaction()
+                    .replace(R.id.container_1, displayFragment, "DISPLAY")
+                    .addToBackStack(null)
+                    .commit();
         }
     }
 
     @Override
     public void playAudio() {
-        if(mBound && selectedBook != null) {
+        if (mBound && selectedBook != null) {
             if (selectedBook != playingBook) {
-               currentPosition = 0;
-               audiobookService.play(selectedBook.getId(), currentPosition);
-               playing = true;
-               playingBook = selectedBook;
-            }
-            else if (paused) {
+                currentPosition = 0;
+                audiobookService.play(selectedBook.getId(), currentPosition);
+                playing = true;
+                playingBook = selectedBook;
+            } else if (paused) {
                 audiobookService.pause();
             } else if (!playing) {
                 audiobookService.play(selectedBook.getId(), currentPosition);
                 playing = true;
                 playingBook = selectedBook;
             }
+
             paused = false;
+
             Log.d("STATE", "Paused: " + paused);
             Log.d("STATE", "Playing: " + playing);
         }
@@ -245,6 +246,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
             paused = !paused;
             audiobookService.pause();
         }
+
         Log.d("STATE", "Paused: " + paused);
         Log.d("STATE", "Playing: " + playing);
     }
@@ -254,12 +256,17 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
         if (playing) {
             audiobookService.stop();
             playing = false;
+
             if (paused) {
                 paused = !paused;
             }
+
             currentPosition = 0;
-//            cFrag = manager.findFragmentByTag("CONTROL");
-            cFrag.setProgress(0);
+            cFrag = (ControlFragment) manager.findFragmentByTag("CONTROL");
+
+            if (cFrag != null) {
+                cFrag.setProgress(0);
+            }
         }
         Log.d("STATE", "Paused: " + paused);
         Log.d("STATE", "Playing: " + playing);
