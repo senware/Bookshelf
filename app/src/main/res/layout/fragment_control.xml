@@ -10,7 +10,7 @@
 
     <TextView
         android:id="@+id/now_playing"
-        android:text="@string/now_playing"
+        android:text=""
         android:textAlignment="center"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

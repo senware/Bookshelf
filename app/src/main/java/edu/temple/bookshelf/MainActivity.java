@@ -203,6 +203,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
         cFrag = (ControlFragment) manager.findFragmentByTag("CONTROL");
         if (cFrag != null) {
             cFrag.setDuration(selectedBook.getDuration());
+            cFrag.setText(selectedBook.getTitle());
         }
 
         if (secondContainer) {

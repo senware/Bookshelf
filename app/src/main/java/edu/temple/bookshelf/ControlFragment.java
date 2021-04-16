@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 
 public class ControlFragment extends Fragment {
@@ -25,7 +26,10 @@ public class ControlFragment extends Fragment {
     public static final String ARG_DURATION = "duration";
     public static final String ARG_CURRENT = "current";
 
+    private static final String ARG_NOW_PLAYING = "now playing";
+
     private SeekBar seekBar;
+    private TextView nowPlaying;
 
     int duration, current;
 
@@ -70,33 +74,18 @@ public class ControlFragment extends Fragment {
         // Inflate the layout for this fragment
         View layout = inflater.inflate(R.layout.fragment_control, container, false);
 
+        nowPlaying = layout.findViewById(R.id.now_playing);
+        if(savedInstanceState != null){
+            nowPlaying.setText(savedInstanceState.getString(ARG_NOW_PLAYING));
+        } else {
+            nowPlaying.setText(getString(R.string.now_playing));
+        }
+
         ImageButton playButton = layout.findViewById(R.id.play_button);
         ImageButton pauseButton = layout.findViewById(R.id.pause_button);
         ImageButton stopButton = layout.findViewById(R.id.stop_button);
 
         seekBar = layout.findViewById(R.id.seek_bar);
-
-//        new Thread(new Runnable () {
-//            @Override
-//            public void run() {
-//                while(duration == 0) {
-//                    duration = getArguments().getInt(ARG_DURATION);
-//                    seekBar.setMax(duration);
-//                }
-//                Log.d("SEEK", "Duration is " + seekBar.getMax());
-//
-//                while (current != duration){
-//                    current = getArguments().getInt(ARG_CURRENT);
-//                    seekBar.setProgress(current, true);
-//                    Log.d("SEEK", "Position: " + seekBar.getProgress());
-//                    try {
-//                        Thread.sleep(1000);
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            }
-//        }).start();
 
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -139,6 +128,11 @@ public class ControlFragment extends Fragment {
         return layout;
     }
 
+    public void setText(String nowPlayingTitle) {
+        String npString = getString(R.string.now_playing) + nowPlayingTitle;
+        nowPlaying.setText(npString);
+    }
+
     public void setDuration(int duration) {
         seekBar.setMax(duration);
         Log.d("SEEK", "Duration is " + seekBar.getMax());
@@ -153,5 +147,11 @@ public class ControlFragment extends Fragment {
         void pauseAudio();
         void stopAudio();
         void seekAudio(int progress);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(ARG_NOW_PLAYING, nowPlaying.getText().toString());
     }
 }
