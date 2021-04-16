@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
@@ -40,7 +41,10 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
     ControlFragment cFrag;
 
     private final String ARG_SELECTED_BOOK = "selectedBook";
+    private final String ARG_PLAYING_BOOK = "playingBook";
     private final String ARG_CURRENT_POSITION = "currentPosition";
+    private final String ARG_PAUSED = "paused";
+    private final String ARG_PLAYING = "playing";
 
     private final String ID = "id", TITLE = "title", AUTHOR = "author", COVERURL = "cover_url", DURATION="duration";
 
@@ -68,6 +72,13 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
             selectedBook = savedInstanceState.getParcelable(ARG_SELECTED_BOOK);
             bookList = (BookList) savedInstanceState.getParcelableArrayList(ListFragment.ARG_BOOKLIST);
             currentPosition = savedInstanceState.getInt(ARG_CURRENT_POSITION);
+            paused = savedInstanceState.getBoolean(ARG_PAUSED);
+            playing = savedInstanceState.getBoolean(ARG_PLAYING);
+            playingBook = savedInstanceState.getParcelable(ARG_PLAYING_BOOK);
+            if (selectedBook != null && playingBook != null) {
+                Log.d("STATE", "Selected Book: " + selectedBook.getTitle());
+                Log.d("STATE", "Playing Book: " + playingBook.getTitle());
+            }
         } else {
             bookList = new BookList(this);
         }
@@ -169,7 +180,9 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
                         AudiobookService.BookProgress bookProgress = (AudiobookService.BookProgress) msg.obj;
                         currentPosition = bookProgress.getProgress();
                         cFrag = (ControlFragment) manager.findFragmentByTag("CONTROL");
-                        cFrag.setProgress(currentPosition);
+                        if (cFrag != null) {
+                            cFrag.setProgress(currentPosition);
+                        }
                         return true;
                     }
                     return false;
@@ -188,7 +201,9 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
         selectedBook = bookList.get(position);
 
         cFrag = (ControlFragment) manager.findFragmentByTag("CONTROL");
-        cFrag.setDuration(selectedBook.getDuration());
+        if(cFrag != null) {
+            cFrag.setDuration(selectedBook.getDuration());
+        }
 
         if(secondContainer) {
             displayFragment.changeBook(bookList.get(position));
@@ -208,14 +223,19 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
             if (selectedBook != playingBook) {
                currentPosition = 0;
                audiobookService.play(selectedBook.getId(), currentPosition);
+               playing = true;
+               playingBook = selectedBook;
             }
-            if (paused) {
+            else if (paused) {
                 audiobookService.pause();
             } else if (!playing) {
                 audiobookService.play(selectedBook.getId(), currentPosition);
                 playing = true;
+                playingBook = selectedBook;
             }
             paused = false;
+            Log.d("STATE", "Paused: " + paused);
+            Log.d("STATE", "Playing: " + playing);
         }
     }
 
@@ -225,6 +245,8 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
             paused = !paused;
             audiobookService.pause();
         }
+        Log.d("STATE", "Paused: " + paused);
+        Log.d("STATE", "Playing: " + playing);
     }
 
     @Override
@@ -239,6 +261,8 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
 //            cFrag = manager.findFragmentByTag("CONTROL");
             cFrag.setProgress(0);
         }
+        Log.d("STATE", "Paused: " + paused);
+        Log.d("STATE", "Playing: " + playing);
     }
 
     @Override
@@ -253,6 +277,9 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
         outState.putParcelable(ARG_SELECTED_BOOK, selectedBook);
         outState.putParcelableArrayList(ListFragment.ARG_BOOKLIST, bookList);
         outState.putInt(ARG_CURRENT_POSITION, currentPosition);
+        outState.putBoolean(ARG_PAUSED, paused);
+        outState.putBoolean(ARG_PLAYING, playing);
+        outState.putParcelable(ARG_PLAYING_BOOK, playingBook);
     }
 
     @Override
