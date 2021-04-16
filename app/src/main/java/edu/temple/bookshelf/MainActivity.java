@@ -60,12 +60,9 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
 
         searchActivityButton = findViewById(R.id.launch_search_button);
 
-        searchActivityButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(), SearchActivity.class);
-                startActivityForResult(intent, 1);
-            }
+        searchActivityButton.setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), SearchActivity.class);
+            startActivityForResult(intent, 1);
         });
 
         if (savedInstanceState != null) {
@@ -162,31 +159,23 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
         bindService(intent, connection, Context.BIND_AUTO_CREATE);
     }
 
-//    @Override
-//    protected void onStop() {
-//        super.onStop();
-//    }
-
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             audiobookService = (AudiobookService.MediaControlBinder) service;
             mBound = true;
 
-            audiobookService.setProgressHandler(new Handler(new Handler.Callback() {
-                @Override
-                public boolean handleMessage(@NonNull Message msg) {
-                    if (!paused && playing) {
-                        AudiobookService.BookProgress bookProgress = (AudiobookService.BookProgress) msg.obj;
-                        currentPosition = bookProgress.getProgress();
-                        cFrag = (ControlFragment) manager.findFragmentByTag("CONTROL");
-                        if (cFrag != null) {
-                            cFrag.setProgress(currentPosition);
-                        }
-                        return true;
+            audiobookService.setProgressHandler(new Handler(msg -> {
+                if (!paused && playing) {
+                    AudiobookService.BookProgress bookProgress = (AudiobookService.BookProgress) msg.obj;
+                    currentPosition = bookProgress.getProgress();
+                    cFrag = (ControlFragment) manager.findFragmentByTag("CONTROL");
+                    if (cFrag != null) {
+                        cFrag.setProgress(currentPosition);
                     }
-                    return false;
+                    return true;
                 }
+                return false;
             }));
         }
 

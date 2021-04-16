@@ -34,58 +34,47 @@ public class SearchActivity extends AppCompatActivity {
         searchEditText = findViewById(R.id.search_edit_text);
         searchButton = findViewById(R.id.search_button);
 
-        searchEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                clearPrompt();
-            }
-        }); // setOnFocusChangeListener
+        searchEditText.setOnFocusChangeListener((v, hasFocus) -> clearPrompt()); // setOnFocusChangeListener
 
-        Handler handler = new Handler(new Handler.Callback() {
-            @Override
-            public boolean handleMessage(@NonNull Message msg) {
-                Intent resultIntent = new Intent(context, MainActivity.class);
-                Bundle extras = new Bundle();
-                extras.putString(BOOKLIST_JSON, (String) msg.obj);
-                resultIntent.putExtras(extras);
-                setResult(RESULT_OK, resultIntent);
-                finish();
-                return true;
-            }
+        Handler handler = new Handler(msg -> {
+            Intent resultIntent = new Intent(context, MainActivity.class);
+            Bundle extras = new Bundle();
+            extras.putString(BOOKLIST_JSON, (String) msg.obj);
+            resultIntent.putExtras(extras);
+            setResult(RESULT_OK, resultIntent);
+            finish();
+            return true;
         }); // Handler
 
-        searchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clearPrompt();
-                String searchText = searchEditText.getText().toString();
+        // onClick
+        searchButton.setOnClickListener(v -> {
+            clearPrompt();
+            String searchText = searchEditText.getText().toString();
 
-                new Thread() {
-                    public void run() {
-                        String urlString = "https://kamorris.com/lab/cis3515/search.php?term=" + searchText;
-                        Log.d("URL", urlString);
+            // run
+            new Thread(() -> {
+                String urlString = "https://kamorris.com/lab/cis3515/search.php?term=" + searchText;
+                Log.d("URL", urlString);
 
-                        try {
-                            URL url = new URL(urlString);
-                            BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+                try {
+                    URL url = new URL(urlString);
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
 
-                            StringBuilder results = new StringBuilder();
-                            String line;
+                    StringBuilder results = new StringBuilder();
+                    String line;
 
-                            while((line = reader.readLine()) != null) {
-                                results.append(line);
-                            }
+                    while((line = reader.readLine()) != null) {
+                        results.append(line);
+                    }
 
-                            Message message = Message.obtain();
-                            message.obj = results.toString();
-                            handler.sendMessage(message);
+                    Message message = Message.obtain();
+                    message.obj = results.toString();
+                    handler.sendMessage(message);
 
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        } // try/catch
-                    } // run
-                }.start(); // Thread
-            } // onClick
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } // try/catch
+            }).start(); // Thread
         }); // setOnClickListener
 
     } // onCreate

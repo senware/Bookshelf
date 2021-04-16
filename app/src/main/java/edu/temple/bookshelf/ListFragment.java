@@ -65,12 +65,7 @@ public class ListFragment extends Fragment {
         BookAdapter bookAdapter = new BookAdapter((Context) parentActivity, bookList);
         listView.setAdapter(bookAdapter);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                parentActivity.itemClicked(position);
-            }
-        });
+        listView.setOnItemClickListener((parent, view, position, id) -> parentActivity.itemClicked(position));
 
         return layout;
     }

@@ -20,9 +20,6 @@ public class ControlFragment extends Fragment {
 
     ControlFragmentInterface parentActivity;
 
-//    private static final String ARG_BOOK= "book";
-//    private Book book;
-
     public static final String ARG_DURATION = "duration";
     public static final String ARG_CURRENT = "current";
 
@@ -31,8 +28,6 @@ public class ControlFragment extends Fragment {
     private SeekBar seekBar;
     private TextView nowPlaying;
 
-    int duration, current;
-
     public ControlFragment() {
         // Required empty public constructor
     }
@@ -40,9 +35,6 @@ public class ControlFragment extends Fragment {
     public static ControlFragment newInstance() {
         ControlFragment fragment = new ControlFragment();
         Bundle args = new Bundle();
-//        args.putParcelable(ARG_BOOK, book);
-//        args.putInt(ARG_DURATION, duration);
-//        args.putInt(ARG_CURRENT, current);
         fragment.setArguments(args);
         return fragment;
     }
@@ -50,9 +42,6 @@ public class ControlFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-//            book = (Book) getArguments().getParcelable(ARG_BOOK);
-        }
         Log.d("FRAG", "Control Fragment created.");
     }
 
@@ -87,36 +76,19 @@ public class ControlFragment extends Fragment {
 
         seekBar = layout.findViewById(R.id.seek_bar);
 
-        playButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                parentActivity.playAudio();
-            }
-        });
-
-        pauseButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                parentActivity.pauseAudio();
-            }
-        });
-
-        stopButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                parentActivity.stopAudio();
-            }
-        });
+        playButton.setOnClickListener(v -> parentActivity.playAudio());
+        pauseButton.setOnClickListener(v -> parentActivity.pauseAudio());
+        stopButton.setOnClickListener(v -> parentActivity.stopAudio());
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
+                // unneeded
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-
+                // unneeded
             }
 
             @Override
