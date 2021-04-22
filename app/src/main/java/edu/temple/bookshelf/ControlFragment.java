@@ -74,7 +74,7 @@ public class ControlFragment extends Fragment {
             nowPlaying.setText(getString(R.string.now_playing));
         }
 
-        parentActivity.updateControllerUI();
+        parentActivity.restoreControllerUI();
 
         ImageButton playButton = layout.findViewById(R.id.play_button);
         ImageButton pauseButton = layout.findViewById(R.id.pause_button);
@@ -119,7 +119,7 @@ public class ControlFragment extends Fragment {
     }
 
     interface ControlFragmentInterface {
-        void updateControllerUI();
+        void restoreControllerUI();
         void playAudio();
         void pauseAudio();
         void stopAudio();

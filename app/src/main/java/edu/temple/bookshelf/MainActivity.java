@@ -19,34 +19,31 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
-import android.service.controls.Control;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 
 import edu.temple.audiobookplayer.AudiobookService;
 
 public class MainActivity extends AppCompatActivity implements ListFragment.ListFragmentInterface, ControlFragment.ControlFragmentInterface {
 
     AudiobookService.MediaControlBinder audiobookService;
-    boolean mBound = false;
+    boolean audioServiceConnected = false;
+    Intent audioServiceIntent;
 
     BookList bookList;
     boolean secondContainer;
     Book selectedBook;
     int currentPosition;
-    boolean paused, playing;
+    boolean paused;
 
     FragmentManager manager;
     DisplayFragment displayFragment;
@@ -112,7 +109,6 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
             bookList = (BookList) savedInstanceState.getParcelableArrayList(ListFragment.ARG_BOOKLIST);
             currentPosition = savedInstanceState.getInt(ARG_CURRENT_POSITION);
             paused = savedInstanceState.getBoolean(ARG_PAUSED);
-            playing = savedInstanceState.getBoolean(ARG_PLAYING);
             if (selectedBook != null) {
                 Log.d("STATE", "Selected Book: " + selectedBook.getTitle());
             }
@@ -200,18 +196,18 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
     @Override
     protected void onStart() {
         super.onStart();
-        Intent intent = new Intent(this, AudiobookService.class);
-        bindService(intent, connection, Context.BIND_AUTO_CREATE);
+        audioServiceIntent = new Intent(this, AudiobookService.class);
+        bindService(audioServiceIntent, connection, Context.BIND_AUTO_CREATE);
     }
 
     private final ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             audiobookService = (AudiobookService.MediaControlBinder) service;
-            mBound = true;
+            audioServiceConnected = true;
 
             audiobookService.setProgressHandler(new Handler(msg -> {
-                if (!paused && playing) {
+                if (!paused && msg.obj != null) {
                     AudiobookService.BookProgress bookProgress = (AudiobookService.BookProgress) msg.obj;
                     currentPosition = bookProgress.getProgress();
                     cFrag = (ControlFragment) manager.findFragmentByTag("CONTROL");
@@ -226,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            mBound = false;
+            audioServiceConnected = false;
         }
     };
 
@@ -241,7 +237,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
 
         cFrag = (ControlFragment) manager.findFragmentByTag("CONTROL");
         if (cFrag != null) {
-            updateControllerUI();
+            restoreControllerUI();
         }
 
         if (secondContainer) {
@@ -305,7 +301,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
     }
 
     @Override
-    public void updateControllerUI() {
+    public void restoreControllerUI() {
         cFrag = (ControlFragment) manager.findFragmentByTag("CONTROL");
         if (cFrag != null && selectedBook != null) {
             cFrag.setDuration(selectedBook.getDuration());
@@ -316,7 +312,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
 
     @Override
     public void playAudio() {
-        if (mBound && selectedBook != null) {
+        if (audioServiceConnected && selectedBook != null) {
             Log.d("PLAY", "Now playing: " + selectedBook.getTitle());
 
             String bookFileName = selectedBook.getTitle().replaceAll(" ", "_");
@@ -327,9 +323,9 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
             if (bookFile.exists()) {
                 if (paused) {
                     audiobookService.pause();
-                } else if (!playing) {
+                } else {
                     audiobookService.play(bookFile, currentPosition);
-                    playing = true;
+                    startService(audioServiceIntent);
                 }
 
             } else {
@@ -344,35 +340,31 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
 
                 if (paused) {
                     audiobookService.pause();
-                } else if (!playing) {
+                } else {
                     audiobookService.play(selectedBook.getId(), currentPosition);
-                    playing = true;
+                    startService(audioServiceIntent);
                 }
             }
 
             paused = false;
 
             Log.d("STATE", "Paused: " + paused);
-            Log.d("STATE", "Playing: " + playing);
         }
     }
 
     @Override
     public void pauseAudio() {
-        if (mBound && selectedBook != null && playing) {
+        if (audioServiceConnected && selectedBook != null) {
             paused = !paused;
             audiobookService.pause();
         }
 
         Log.d("STATE", "Paused: " + paused);
-        Log.d("STATE", "Playing: " + playing);
     }
 
     @Override
     public void stopAudio() {
-        if (playing) {
             audiobookService.stop();
-            playing = false;
 
             if (paused) {
                 paused = !paused;
@@ -384,9 +376,10 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
             if (cFrag != null) {
                 cFrag.setProgress(0);
             }
-        }
+
+            stopService(audioServiceIntent);
+
         Log.d("STATE", "Paused: " + paused);
-        Log.d("STATE", "Playing: " + playing);
     }
 
     @Override
@@ -402,12 +395,10 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
         outState.putParcelableArrayList(ListFragment.ARG_BOOKLIST, bookList);
         outState.putInt(ARG_CURRENT_POSITION, currentPosition);
         outState.putBoolean(ARG_PAUSED, paused);
-        outState.putBoolean(ARG_PLAYING, playing);
     }
 
     @Override
     public void onBackPressed() {
-//        selectedBook = null;
         super.onBackPressed();
     }
 
