@@ -6,21 +6,24 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import android.app.DownloadManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.File;
 
 import edu.temple.audiobookplayer.AudiobookService;
 
@@ -40,11 +43,15 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
     DisplayFragment displayFragment;
     ControlFragment cFrag;
 
+    File bookFile;
+    DownloadManager downloadManager;
+
     private final String ARG_SELECTED_BOOK = "selectedBook";
     private final String ARG_PLAYING_BOOK = "playingBook";
     private final String ARG_CURRENT_POSITION = "currentPosition";
     private final String ARG_PAUSED = "paused";
     private final String ARG_PLAYING = "playing";
+    private final String BOOK_CASE_API = "https://kamorris.com/lab/audlib/download.php?id=";
 
     private final String ID = "id", TITLE = "title", AUTHOR = "author", COVERURL = "cover_url", DURATION = "duration";
 
@@ -209,24 +216,51 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
 
     @Override
     public void playAudio() {
-        if (mBound && selectedBook != null) {
-            if (selectedBook != playingBook) {
-                currentPosition = 0;
-                audiobookService.play(selectedBook.getId(), currentPosition);
-                playing = true;
-                playingBook = selectedBook;
-            } else if (paused) {
-                audiobookService.pause();
-            } else if (!playing) {
-                audiobookService.play(selectedBook.getId(), currentPosition);
-                playing = true;
-                playingBook = selectedBook;
+        if(selectedBook != null) {
+            String bookFileName = selectedBook.getTitle().replaceAll(" ", "_");
+            bookFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), bookFileName);
+            Log.d("FILE", "book file exists: " + bookFile.exists());
+            Log.d("FILE", String.valueOf((float)(bookFile.length())/1000000f) + " MB");
+            if (bookFile.exists()) {
+                if (selectedBook != playingBook) {
+                    currentPosition = 0;
+                    audiobookService.play(bookFile, currentPosition);
+                    playing = true;
+                    playingBook = selectedBook;
+                } else if (paused) {
+                    audiobookService.pause();
+                } else if (!playing) {
+                    audiobookService.play(bookFile, currentPosition);
+                    playing = true;
+                    playingBook = selectedBook;
+                }
+
+            } else if (mBound) {
+                String url = BOOK_CASE_API + selectedBook.getId();
+                downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url))
+                        .setDestinationUri(Uri.fromFile(bookFile))
+                        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
+                        .setTitle(bookFileName);
+                downloadManager.enqueue(request);
+                if (selectedBook != playingBook) {
+                    currentPosition = 0;
+                    audiobookService.play(selectedBook.getId(), currentPosition);
+                    playing = true;
+                    playingBook = selectedBook;
+                } else if (paused) {
+                    audiobookService.pause();
+                } else if (!playing) {
+                    audiobookService.play(selectedBook.getId(), currentPosition);
+                    playing = true;
+                    playingBook = selectedBook;
+                }
+
+                paused = false;
+
+                Log.d("STATE", "Paused: " + paused);
+                Log.d("STATE", "Playing: " + playing);
             }
-
-            paused = false;
-
-            Log.d("STATE", "Paused: " + paused);
-            Log.d("STATE", "Playing: " + playing);
         }
     }
 
