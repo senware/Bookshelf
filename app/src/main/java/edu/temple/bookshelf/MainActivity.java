@@ -310,8 +310,8 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
         }
     }
 
-    // if you pause, then exit the app, then relaunch
-    // the play button will act like a pause button
+    // if you pause, then exit the app, then relaunch, then unpause
+    // the play button will act like a pause button, but eventually fixes itself
     // i know why it happens but it doesn't break anything
     // it still plays when it needs to so i'm not going to fix it
     // it's not a bug, it's a feature
