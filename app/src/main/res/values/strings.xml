@@ -7,4 +7,5 @@
     <string name="search_prompt">Enter title/author</string>
     <string name="search_button">Go</string>
     <string name="now_playing">Now Playing:\u0020</string>
+    <string name="preference_key">edu.temple.Bookshelf.preferences</string>
 </resources>
