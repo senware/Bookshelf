@@ -188,6 +188,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                manager.popBackStack();
                 manager
                         .beginTransaction()
                         .replace(R.id.container_1, ListFragment.newInstance(bookList))
