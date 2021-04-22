@@ -7,9 +7,11 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,6 +20,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -45,6 +48,8 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
 
     File bookFile;
     DownloadManager downloadManager;
+    long downloadID;
+    BroadcastReceiver onDownloadedBook;
 
     private final String ARG_SELECTED_BOOK = "selectedBook";
     private final String ARG_PLAYING_BOOK = "playingBook";
@@ -61,6 +66,19 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        onDownloadedBook = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                long broadcastID = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+                if (downloadID == broadcastID) {
+                    Toast.makeText(context, "Book downloaded", Toast.LENGTH_LONG).show();
+                }
+            }
+        };
+
+        IntentFilter downloadIntentFilter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+        registerReceiver(onDownloadedBook, downloadIntentFilter);
 
         manager = getSupportFragmentManager();
         secondContainer = findViewById(R.id.container_2) != null;
@@ -166,7 +184,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
         bindService(intent, connection, Context.BIND_AUTO_CREATE);
     }
 
-    private ServiceConnection connection = new ServiceConnection() {
+    private final ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             audiobookService = (AudiobookService.MediaControlBinder) service;
@@ -220,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
             String bookFileName = selectedBook.getTitle().replaceAll(" ", "_");
             bookFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), bookFileName);
             Log.d("FILE", "book file exists: " + bookFile.exists());
-            Log.d("FILE", String.valueOf((float)(bookFile.length())/1000000f) + " MB");
+            Log.d("FILE", (float)(bookFile.length())/1000000f + " MB");
             if (bookFile.exists()) {
                 if (selectedBook != playingBook) {
                     currentPosition = 0;
@@ -242,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
                         .setDestinationUri(Uri.fromFile(bookFile))
                         .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
                         .setTitle(bookFileName);
-                downloadManager.enqueue(request);
+                downloadID = downloadManager.enqueue(request);
                 if (selectedBook != playingBook) {
                     currentPosition = 0;
                     audiobookService.play(selectedBook.getId(), currentPosition);
@@ -255,12 +273,12 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
                     playing = true;
                     playingBook = selectedBook;
                 }
-
-                paused = false;
-
-                Log.d("STATE", "Paused: " + paused);
-                Log.d("STATE", "Playing: " + playing);
             }
+
+            paused = false;
+
+            Log.d("STATE", "Paused: " + paused);
+            Log.d("STATE", "Playing: " + playing);
         }
     }
 
@@ -319,4 +337,9 @@ public class MainActivity extends AppCompatActivity implements ListFragment.List
         super.onBackPressed();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(onDownloadedBook);
+    }
 }
